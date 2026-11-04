@@ -1,4 +1,10 @@
-# AlloyLogger Cloud local development
+# Ingest service
+
+The Cloudflare Worker behind `ingest.alloylogger.com`. It receives chunks from the SDK packages and
+assembles each run into one MCAP in Alloy Storage. The Worker keeps its deployed name,
+`alloylogger-cloud`, and its Durable Object and R2 bindings: renaming them would orphan live runs.
+
+## Local development
 
 From this directory:
 

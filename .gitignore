@@ -1,0 +1,9 @@
+.DS_Store
+build/
+*.bin
+secrets.h
+node_modules/
+.wrangler/
+.dev.vars
+.dev.vars*
+.env*

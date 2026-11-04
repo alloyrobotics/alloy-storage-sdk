@@ -1,0 +1,58 @@
+name: arduino
+
+on:
+  push:
+    branches: [main]
+    paths: ["mcu/arduino/**", ".github/workflows/arduino.yml"]
+  pull_request:
+    paths: ["mcu/arduino/**", ".github/workflows/arduino.yml"]
+
+jobs:
+  portable-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: make -C mcu/arduino/test/portable test
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: arduino/arduino-lint-action@v2
+        with:
+          path: mcu/arduino
+          # Switch to `update` once Library Manager has processed the AlloyLogger -> AlloyStorage
+          # rename; until then rule LP018 (name not in the index) fails by design.
+          library-manager: false
+          compliance: strict
+
+  compile:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - fqbn: esp32:esp32:esp32
+            examples: AutoCapture BasicSensor FirstMission SelfBalancingRobot
+          - fqbn: esp32:esp32:esp32s3
+            examples: AutoCapture BasicSensor FirstMission SelfBalancingRobot
+          - fqbn: esp32:esp32:esp32c3
+            examples: AutoCapture BasicSensor FirstMission SelfBalancingRobot
+          - fqbn: arduino:renesas_uno:unor4wifi
+            examples: UnoR4Starter UnoR4Telemetry
+    steps:
+      - uses: actions/checkout@v4
+      - uses: arduino/setup-arduino-cli@v2
+      - name: Install core and dependencies
+        run: |
+          arduino-cli config init
+          arduino-cli config add board_manager.additional_urls https://espressif.github.io/arduino-esp32/package_esp32_index.json
+          arduino-cli core update-index
+          arduino-cli core install "$(echo '${{ matrix.fqbn }}' | cut -d: -f1-2)"
+          arduino-cli lib install ArduinoJson
+      - name: Compile examples
+        run: |
+          for ex in ${{ matrix.examples }}; do
+            arduino-cli compile --fqbn '${{ matrix.fqbn }}' --warnings all \
+              --library mcu/arduino "mcu/arduino/examples/$ex"
+          done
