@@ -11,8 +11,6 @@ jobs:
   twister:
     runs-on: ubuntu-latest
     container: ghcr.io/zephyrproject-rtos/ci:v0.29.4
-    env:
-      ZEPHYR_SDK_INSTALL_DIR: /opt/toolchains/zephyr-sdk
     steps:
       - uses: actions/checkout@v4
         with:
@@ -27,6 +25,9 @@ jobs:
           west blobs fetch hal_espressif
           west blobs fetch nrf_wifi
           pip install "esptool>=5.0.2"
+          # The image ships the SDK as /opt/toolchains/zephyr-sdk-<version> (same as Zephyr's CI).
+          echo "ZEPHYR_SDK_INSTALL_DIR=/opt/toolchains/zephyr-sdk-$(cat zephyr/SDK_VERSION)" >> $GITHUB_ENV
+          ls -d /opt/toolchains/zephyr-sdk-*
 
       - name: Unit tests on native_sim
         working-directory: ws
