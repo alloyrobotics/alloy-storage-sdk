@@ -8,10 +8,17 @@ release channel.
 
 | Package | Folder | Install | Status |
 |---|---|---|---|
-| Arduino (ESP32 family, UNO R4 WiFi) | [`mcu/arduino`](mcu/arduino) | Arduino Library Manager: **AlloyStorage** | 0.6.0 |
-| ESP-IDF component | [`mcu/esp-idf`](mcu/esp-idf) | ESP Component Registry | planned |
+| Arduino (ESP32 family, UNO R4 WiFi) | [`mcu/arduino`](mcu/arduino) | Arduino Library Manager: **AlloyStorage**; PlatformIO `lib_deps` | 0.6.0 |
+| ESP-IDF component | [`mcu/esp-idf`](mcu/esp-idf) | git or path dependency now; ESP Component Registry (`alloyrobotics/alloy_storage`) on release | 0.1.0, unreleased |
+| Zephyr module | [`mcu/zephyr`](mcu/zephyr) | west project or `ZEPHYR_EXTRA_MODULES` | 0.1.0, unreleased |
 | MicroPython | [`mcu/micropython`](mcu/micropython) | `mip` | planned |
 | Linux, Python and ROS 2 | [`linux`](linux) | | planned (Alloy Edge covers these today) |
+
+The three ESP32 packages (Arduino, ESP-IDF, Zephyr) speak the same HTTP protocol
+([`spec/esp32-http-v1.md`](spec/esp32-http-v1.md)), so the ingest service treats them identically.
+Each is verified on a real ESP32-C3 against the same gates: a first run lands in Alloy Storage with
+its mission label, the clock still sets when NTP is blocked, and a 25 s Wi-Fi outage loses no
+samples.
 
 The service these packages upload to, and the wire format they speak, live here too:
 
@@ -29,7 +36,8 @@ alloy-storage-sdk/
 ├── core/               portable, framework-free code shared by C/C++ packages
 ├── mcu/
 │   ├── arduino/        Arduino library (published to Library Manager)
-│   ├── esp-idf/        ESP-IDF component (planned)
+│   ├── esp-idf/        native ESP-IDF component
+│   ├── zephyr/         native Zephyr module
 │   └── micropython/    MicroPython package (planned)
 ├── linux/              Linux, Python and ROS 2 packages (planned)
 ├── services/ingest/    ingest service
@@ -38,7 +46,7 @@ alloy-storage-sdk/
 
 ## Releases
 
-Each package is tagged on its own: `arduino-v0.6.0`, later `esp-idf-v0.1.0` and so on. A fix to one
+Each package is tagged on its own: `arduino-v0.6.0`, later `esp-idf-v0.1.0`, `zephyr-v0.1.0` and so on. A fix to one
 package never forces a release of another.
 
 The Arduino library is the one exception to "publish from a folder": Library Manager only indexes a

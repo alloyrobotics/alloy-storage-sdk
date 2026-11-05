@@ -3,10 +3,15 @@
 Framework-free C/C++ shared by the C and C++ packages: retry and backoff policy, the graceful-end
 gate, the HTTP `Date` clock fallback, and the device wire framing.
 
-Today it has one consumer, so it still lives inside the Arduino package:
+Each C/C++ package currently carries its own copy of this logic, written natively for its framework
+and tested on the host:
 
-- `mcu/arduino/src/AlloyReliability.h`: retry, end-gate and clock policies
-- `mcu/arduino/src/alloy/device/`: wire protocol framing and the binary capture core
+| Package | Portable code | Host tests |
+|---|---|---|
+| Arduino | `mcu/arduino/src/AlloyReliability.h`, `mcu/arduino/src/alloy/device/` | `make -C mcu/arduino/test/portable test` |
+| ESP-IDF | `mcu/esp-idf/alloy_storage/portable/` | `make -C mcu/esp-idf/test/host test` |
+| Zephyr | `mcu/zephyr/core/` | twister on `native_sim` (`mcu/zephyr/tests`) |
 
-It moves here when the ESP-IDF component lands, so both packages build from one copy. The portable
-tests (`mcu/arduino/test/portable`, run on the host under ASan/UBSan) move with it.
+None of these copies include framework headers. Merging them into one C core here, with one test
+suite every package runs, is the next step; until then a protocol or policy change has to land in
+all three, and [`spec/esp32-http-v1.md`](../spec/esp32-http-v1.md) is the reference they follow.

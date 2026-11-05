@@ -21,13 +21,13 @@ if [ -n "$(git -C "$SDK" status --porcelain -- mcu/arduino)" ]; then
 fi
 
 # Library-owned directories are mirrored exactly; library-owned files are overwritten.
-for dir in src examples test/portable extras/uno-probe; do
+for dir in src examples test/portable extras/uno-probe extras/platformio; do
   mkdir -p "$DEST/$dir"
   rsync -a --delete "$PKG/$dir/" "$DEST/$dir/"
 done
 mkdir -p "$DEST/docs"
 rsync -a "$PKG/docs/" "$DEST/docs/"
-for file in library.properties README.md THIRD_PARTY_NOTICES LICENSE; do
+for file in library.properties library.json README.md THIRD_PARTY_NOTICES LICENSE; do
   cp "$PKG/$file" "$DEST/$file"
 done
 
