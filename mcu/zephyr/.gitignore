@@ -1,0 +1,4 @@
+# Credentials for the samples (pass with -DEXTRA_CONF_FILE)
+secrets.conf
+*.secrets.conf
+twister-out*/

@@ -1,0 +1,131 @@
+# Copyright (c) 2026 Alloy Robotics
+# SPDX-License-Identifier: MIT
+
+config ALLOY_STORAGE_CORE
+	bool "Alloy Storage portable core only"
+	select REQUIRES_FLOAT_PRINTF
+	help
+	  Builds only the platform-independent core (CSV encoding, buffer pool, delivery
+	  policies). Used by the unit tests; applications enable ALLOY_STORAGE instead.
+
+menuconfig ALLOY_STORAGE
+	bool "Alloy Storage SDK"
+	depends on NETWORKING && NET_IPV4 && NET_TCP
+	select EVENTS
+	select NET_SOCKETS
+	select NET_SOCKETS_SOCKOPT_TLS
+	select NET_CONNECTION_MANAGER
+	select NET_MGMT
+	select NET_MGMT_EVENT
+	select NET_MGMT_EVENT_INFO
+	select DNS_RESOLVER
+	select SNTP
+	select MBEDTLS
+	select MBEDTLS_X509_CRT_PARSE_C
+	select MBEDTLS_PEM_PARSE_C
+	select MBEDTLS_SSL_SERVER_NAME_INDICATION
+	select MBEDTLS_CIPHERSUITE_TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
+	select MBEDTLS_CIPHERSUITE_TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+	select PSA_WANT_ECC_SECP_R1_256
+	select PSA_WANT_ECC_SECP_R1_384
+	select PSA_WANT_ALG_SHA_384
+	select PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY
+	select TLS_CREDENTIALS
+	select REQUIRES_FLOAT_PRINTF
+	help
+	  Stream telemetry to Alloy Storage: log named fields on a channel, buffer them in a
+	  static RAM pool and upload CSV chunks to Alloy Storage ingest in the background.
+
+if ALLOY_STORAGE
+
+config ALLOY_STORAGE_INGEST_URL
+	string "Ingest base URL"
+	default "https://ingest.alloylogger.com"
+	help
+	  Alloy Storage ingest service. alloy_storage_config.ingest_url overrides it at runtime.
+
+config ALLOY_STORAGE_BUFFER_COUNT
+	int "Number of RAM buffers"
+	default 4
+	range 2 16
+	help
+	  Keep this above the number of channels logged at once, or timed flushes have to wait
+	  for a free buffer. Memory is BUFFER_COUNT x BUFFER_SIZE, allocated statically.
+
+config ALLOY_STORAGE_BUFFER_SIZE
+	int "Bytes per buffer"
+	default 12288
+	range 1024 61440
+	help
+	  One buffer becomes one CSV chunk upload. Ingest accepts chunks up to 64 KB.
+
+config ALLOY_STORAGE_FLUSH_INTERVAL_MS
+	int "Flush interval (ms)"
+	default 4000
+	help
+	  A part-full buffer is sealed and uploaded after this long, unless an earlier chunk is
+	  still waiting to upload (then it keeps filling, so an outage spends RAM, not buffers).
+
+config ALLOY_STORAGE_MAX_CHANNELS
+	int "Maximum channels"
+	default 8
+	range 1 16
+
+config ALLOY_STORAGE_MAX_DESCRIBE
+	int "Maximum describe() entries"
+	default 16
+	range 0 64
+
+config ALLOY_STORAGE_THREAD_STACK_SIZE
+	int "Uploader thread stack size"
+	default 8192
+	help
+	  The uploader runs DNS, SNTP and the TLS handshake on this stack.
+
+config ALLOY_STORAGE_THREAD_PRIORITY
+	int "Uploader thread priority"
+	default 10
+	help
+	  Preemptible priority. Keep it below your control loops; logging never waits for it.
+
+config ALLOY_STORAGE_HTTP_TIMEOUT_MS
+	int "HTTP send/receive timeout (ms)"
+	default 15000
+
+config ALLOY_STORAGE_SNTP_SERVER
+	string "SNTP server"
+	default "pool.ntp.org"
+
+config ALLOY_STORAGE_SNTP_GRACE_MS
+	int "SNTP grace before the HTTP Date fallback (ms)"
+	default 5000
+	help
+	  Some networks filter or delay NTP. After this long without an SNTP answer the clock is
+	  taken from the ingest server's HTTP Date header instead of holding every buffer.
+
+config ALLOY_STORAGE_TLS_SEC_TAG
+	int "TLS credential security tag for the CA bundle"
+	default 1095521281
+	help
+	  The built-in CA bundle (Google Trust Services and ISRG roots) is registered
+	  under this tag. Change it only if it collides with one of your own tags.
+
+config ALLOY_STORAGE_WIFI_RECONNECT
+	bool "Reconnect Wi-Fi from the uploader"
+	default y
+	help
+	  When the network is down and alloy_storage_wifi_connect() was used, the uploader asks
+	  the Wi-Fi interface to reconnect (at most every 10 s).
+
+config ALLOY_STORAGE_DEVICE_ID
+	string "Default device id"
+	default ""
+	help
+	  Used when alloy_storage_config.device_id is NULL. Empty means the board name plus the
+	  last three bytes of the hardware id.
+
+module = ALLOY_STORAGE
+module-str = Alloy Storage
+source "subsys/logging/Kconfig.template.log_config"
+
+endif # ALLOY_STORAGE

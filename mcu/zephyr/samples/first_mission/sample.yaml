@@ -1,0 +1,15 @@
+sample:
+  name: Alloy Storage first mission
+  description: Log generated telemetry for 20 s and finalize one Alloy Storage mission
+common:
+  tags: alloy_storage
+  build_only: true
+  platform_allow:
+    - esp32c3_supermini
+    - esp32c3_devkitm
+    - nrf7002dk/nrf5340/cpuapp
+  integration_platforms:
+    - esp32c3_supermini
+    - nrf7002dk/nrf5340/cpuapp
+tests:
+  sample.alloy_storage.first_mission: {}
