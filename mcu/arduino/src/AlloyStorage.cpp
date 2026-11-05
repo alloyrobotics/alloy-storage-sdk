@@ -563,10 +563,12 @@ void AlloyStorage::commitRow(const char* chan, const char* hdr, int hlen, const 
 
   // 90%-full seals unconditionally — that's genuine backpressure. A time-based flush instead
   // claims its replacement buffer atomically (or defers): otherwise simultaneous multi-channel
-  // flushes race for one free buffer and shed each other's sealed data.
+  // flushes race for one free buffer and shed each other's sealed data. It also waits while a
+  // sealed chunk is still queued: during an outage, sealing part-full buffers on the timer would
+  // spend the pool on mostly empty chunks and shed data the RAM could have held.
   if (b->len >= (_bufBytes * 9) / 10) {
     seal(b); s->active = nullptr;
-  } else if ((millis() - s->since) >= _flushMs) {
+  } else if ((millis() - s->since) >= _flushMs && uxQueueMessagesWaiting(_pendingQ) == 0) {
     Buf* nb;
     if (xQueueReceive(_freeQ, &nb, 0) == pdTRUE) {
       nb->len = 0; memcpy(nb->chan, b->chan, ALLOY_CHAN_MAX);
@@ -837,6 +839,7 @@ void AlloyStorage::taskLoop() {
       xSemaphoreTake(_mtx, portMAX_DELAY);
       for (uint8_t i = 0; i < _nSlots; i++) {
         Slot& s = _slots[i];
+        if (uxQueueMessagesWaiting(_pendingQ) > 0) break;  // backlog: keep filling (see commitRow)
         if (s.active && s.active->len > 0 && (millis() - s.since) >= _flushMs) {
           Buf* nb;                                     // claim the replacement atomically, else retry in 250ms
           if (xQueueReceive(_freeQ, &nb, 0) != pdTRUE) continue;

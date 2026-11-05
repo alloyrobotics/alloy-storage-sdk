@@ -131,6 +131,9 @@ tasks were ported to the RA4M1.
   see the note on cores below.
 - **Reliable by default.** RAM-buffered with **store-and-forward** — if WiFi drops, buffers queue and
   flush on reconnect; if the uplink can't keep up, the oldest buffer is shed (counted), never a crash.
+  While uploads are backed up, buffers fill completely instead of flushing every 4 s, so an outage
+  is limited by RAM, not time: the default pool (4 x 12 KB) rides out about a minute of no Wi-Fi at
+  600 bytes/s of logging (measured: a 25 s outage on an ESP32-C3 lost nothing).
 - **Zero flash wear.** Nothing touches the filesystem, so it coexists with OTA / `min_spiffs` layouts.
 - **Alloy-native.** Each run becomes one indexed `.mcap` in your mesh: Replay/Inspect, mission
   summaries, and SQL all work out of the box, plus a one-time semantics sidecar for Alloy AI.
