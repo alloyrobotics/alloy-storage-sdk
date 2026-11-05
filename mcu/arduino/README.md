@@ -23,7 +23,7 @@ Alloy Edge installation is involved. Arduino UNO R4 WiFi users should start with
 
 ### 1. Install the library
 
-1. Install the **esp32 by Espressif Systems** board package in Arduino IDE's Boards Manager.
+1. Install the **esp32 by Espressif Systems** board package (3.0 or newer) in Arduino IDE's Boards Manager.
 2. Install **ArduinoJson** in Library Manager.
 3. Install **AlloyStorage** in Library Manager. Until the 0.6 rename reaches Library Manager, download
    the ZIP from the [Arduino release repo](https://github.com/alloyrobotics/alloy-logger-arduino/releases)
@@ -145,7 +145,10 @@ tasks were ported to the RA4M1.
 **Arduino IDE:** Sketch → Include Library → Add .ZIP Library (or clone into `~/Arduino/libraries/`).
 Depends on **ArduinoJson** (Library Manager).
 
-**arduino-cli / PlatformIO:**
+ESP32 boards need the Arduino-ESP32 core 3.0 or newer (the esp32 board package 3.x). Older 2.x
+cores stop at compile time with a message naming the minimum.
+
+**arduino-cli:**
 ```bash
 arduino-cli lib install ArduinoJson
 # clone this repo into your libraries folder, or for a one-off build:
@@ -157,6 +160,45 @@ You need an Alloy account + a data-API key
 ([create an org free](https://www.usealloy.ai/setup-org?utm_source=github&utm_medium=referral&utm_campaign=alloylogger&utm_content=readme),
 then Dashboard → Mesh Storage → API key). Keep the key in a gitignored `secrets.h`, not in the
 sketch — see [Security](#security) for what it can do.
+
+### PlatformIO
+
+Add the library to `lib_deps`. PlatformIO finds the package in `mcu/arduino` of the SDK repo and
+installs ArduinoJson with it:
+
+```ini
+[env:esp32c3]
+platform = espressif32 @ ^8.0.0
+board = esp32-c3-devkitm-1
+framework = arduino
+monitor_speed = 115200
+board_build.partitions = min_spiffs.csv
+build_flags = -DARDUINO_USB_MODE=1 -DARDUINO_USB_CDC_ON_BOOT=1   ; only when the console is the chip's native USB
+lib_deps = https://github.com/alloyrobotics/alloy-storage-sdk.git#arduino-v0.6.0
+```
+
+For a local checkout, use `lib_deps = symlink:///path/to/alloy-storage-sdk/mcu/arduino` instead.
+AlloyStorage 0.6 is not in the PlatformIO Registry yet (the registry still lists the 0.5 release as
+`alloyrobotics/AlloyLogger`), so install from git or a path for now.
+
+Supported PlatformIO platforms:
+
+| Platform | Arduino-ESP32 | Status |
+|---|---|---|
+| `espressif32 @ ^8.0.0` (official) | 3.3 | Supported, hardware-verified on ESP32-C3 |
+| [pioarduino](https://github.com/pioarduino/platform-espressif32) `55.03.312-1` | 3.3 | Supported, hardware-verified on ESP32-C3 |
+| `espressif32` 7.x and older (official) | 2.0.17 | Not supported: fails at compile time |
+
+`board_build.partitions = min_spiffs.csv` matters on 4 MB boards: a sketch with Wi-Fi and verified
+TLS is about 1.1 to 1.35 MB, close to or over the 1.25 MB app slot of the default partition table.
+
+[`extras/platformio`](extras/platformio) is a ready project that builds the `FirstMission` example
+for the ESP32-C3, ESP32-S3 and classic ESP32 on both platforms:
+
+```bash
+cd mcu/arduino/extras/platformio
+pio run -e esp32c3 -t upload && pio device monitor -e esp32c3
+```
 
 ---
 
