@@ -1,0 +1,37 @@
+# Copyright (c) 2026 Alloy Robotics
+# SPDX-License-Identifier: MIT
+
+source "Kconfig.zephyr"
+
+menu "First mission"
+
+config APP_WIFI_SSID
+	string "2.4 GHz Wi-Fi name"
+	default "YOUR_2_4_GHZ_WIFI_NAME"
+
+config APP_WIFI_PSK
+	string "Wi-Fi password (empty for an open network)"
+	default "YOUR_WIFI_PASSWORD"
+
+config APP_ALLOY_API_KEY
+	string "Alloy data API key"
+	default "YOUR_ALLOY_DATA_API_KEY"
+	help
+	  A long-lived, org-wide key. Keep it in a git-ignored conf file passed with
+	  -DEXTRA_CONF_FILE=..., never in prj.conf.
+
+config APP_ALLOY_MESH_PATH
+	string "Mesh path"
+	default "first-missions/zephyr"
+	help
+	  Letters, numbers, _, - and / only, no leading or trailing slash.
+
+config APP_MISSION_LABEL
+	string "Mission label"
+	default "first Zephyr mission"
+
+config APP_MISSION_SECONDS
+	int "Seconds of generated telemetry"
+	default 20
+
+endmenu

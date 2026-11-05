@@ -1,0 +1,15 @@
+sample:
+  name: Alloy Storage outage test
+  description: Drop Wi-Fi for 25 s while a chunk is queued; every row must still arrive once
+common:
+  tags: alloy_storage
+  build_only: true
+  platform_allow:
+    - esp32c3_supermini
+    - esp32c3_devkitm
+    - nrf7002dk/nrf5340/cpuapp
+  integration_platforms:
+    - esp32c3_supermini
+    - nrf7002dk/nrf5340/cpuapp
+tests:
+  sample.alloy_storage.outage_test: {}

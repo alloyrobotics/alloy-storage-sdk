@@ -1,0 +1,43 @@
+name: zephyr
+
+on:
+  push:
+    branches: [main]
+    paths: ["mcu/zephyr/**", ".github/workflows/zephyr.yml"]
+  pull_request:
+    paths: ["mcu/zephyr/**", ".github/workflows/zephyr.yml"]
+
+jobs:
+  twister:
+    runs-on: ubuntu-latest
+    container: ghcr.io/zephyrproject-rtos/ci:v0.29.4
+    env:
+      ZEPHYR_SDK_INSTALL_DIR: /opt/toolchains/zephyr-sdk
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: alloy-storage-sdk
+
+      - name: West workspace (Zephyr v4.5.0 + the modules the samples need)
+        run: |
+          west init -m https://github.com/zephyrproject-rtos/zephyr --mr v4.5.0 ws
+          cd ws
+          west update --narrow -o=--depth=1 zephyr cmsis_6 hal_espressif hal_nordic \
+            nrf_wifi hostap mbedtls tf-psa-crypto tf-psa-crypto-drivers picolibc
+          west blobs fetch hal_espressif
+          west blobs fetch nrf_wifi
+          pip install "esptool>=5.0.2"
+
+      - name: Unit tests on native_sim
+        working-directory: ws
+        run: |
+          west twister -T ../alloy-storage-sdk/mcu/zephyr/tests -p native_sim \
+            -x=ZEPHYR_EXTRA_MODULES=$GITHUB_WORKSPACE/alloy-storage-sdk/mcu/zephyr \
+            -O twister-tests --inline-logs
+
+      - name: Build samples (ESP32-C3 and nRF7002 DK)
+        working-directory: ws
+        run: |
+          west twister -T ../alloy-storage-sdk/mcu/zephyr/samples --integration \
+            -x=ZEPHYR_EXTRA_MODULES=$GITHUB_WORKSPACE/alloy-storage-sdk/mcu/zephyr \
+            -O twister-samples --inline-logs -j 4

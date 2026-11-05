@@ -1,0 +1,36 @@
+# Copyright (c) 2026 Alloy Robotics
+# SPDX-License-Identifier: MIT
+
+source "Kconfig.zephyr"
+
+menu "Outage test"
+
+config APP_WIFI_SSID
+	string "2.4 GHz Wi-Fi name"
+	default "YOUR_2_4_GHZ_WIFI_NAME"
+
+config APP_WIFI_PSK
+	string "Wi-Fi password (empty for an open network)"
+	default "YOUR_WIFI_PASSWORD"
+
+config APP_ALLOY_API_KEY
+	string "Alloy data API key"
+	default "YOUR_ALLOY_DATA_API_KEY"
+
+config APP_ALLOY_MESH_PATH
+	string "Mesh path"
+	default "hardware-verification/zephyr-outage"
+
+config APP_RUN_SECONDS
+	int "Total logging time (s)"
+	default 60
+
+config APP_OUTAGE_SECONDS
+	int "Wi-Fi outage length (s)"
+	default 25
+
+config APP_RATE_HZ
+	int "Sequence counter rate (Hz)"
+	default 20
+
+endmenu
