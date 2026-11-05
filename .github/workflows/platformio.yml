@@ -1,0 +1,46 @@
+name: platformio
+
+on:
+  push:
+    branches: [main]
+    paths: ["mcu/arduino/**", ".github/workflows/platformio.yml"]
+  pull_request:
+    paths: ["mcu/arduino/**", ".github/workflows/platformio.yml"]
+
+jobs:
+  pack:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install platformio
+      # Validates library.json and the export rules; nothing is published.
+      - run: pio pkg pack mcu/arduino -o "$RUNNER_TEMP"
+
+  example:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        env:
+          - esp32c3
+          - esp32s3
+          - esp32
+          - esp32c3-pioarduino
+          - esp32s3-pioarduino
+          - esp32-pioarduino
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/cache@v4
+        with:
+          path: ~/.platformio
+          key: pio-${{ matrix.env }}-${{ hashFiles('mcu/arduino/extras/platformio/platformio.ini') }}
+      - run: pip install platformio
+      - name: Build FirstMission
+        working-directory: mcu/arduino/extras/platformio
+        run: pio run -e ${{ matrix.env }}
