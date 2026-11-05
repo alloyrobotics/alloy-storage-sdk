@@ -1,0 +1,31 @@
+version: "0.1.0"
+description: "Alloy Storage SDK: stream robot telemetry from ESP32 chips into Alloy Storage, one indexed MCAP per run."
+url: "https://github.com/alloyrobotics/alloy-storage-sdk/tree/main/mcu/esp-idf/alloy_storage"
+repository: "https://github.com/alloyrobotics/alloy-storage-sdk.git"
+repository_info:
+  path: "mcu/esp-idf/alloy_storage"
+documentation: "https://github.com/alloyrobotics/alloy-storage-sdk/blob/main/mcu/esp-idf/alloy_storage/README.md"
+issues: "https://github.com/alloyrobotics/alloy-storage-sdk/issues"
+license: "MIT"
+tags:
+  - robotics
+  - telemetry
+  - logging
+  - mcap
+targets:
+  - esp32
+  - esp32s2
+  - esp32s3
+  - esp32c3
+  - esp32c6
+dependencies:
+  idf: ">=5.3"
+files:
+  exclude:
+    - "**/build/**/*"
+    - "**/build-*/**/*"
+    - "**/managed_components/**/*"
+    - "**/sdkconfig"
+    - "**/sdkconfig.old"
+    - "**/sdkconfig.secrets"
+    - "**/dependencies.lock"

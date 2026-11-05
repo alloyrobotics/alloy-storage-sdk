@@ -1,0 +1,39 @@
+menu "First mission"
+
+    config EXAMPLE_WIFI_SSID
+        string "Wi-Fi SSID (2.4 GHz)"
+        default "YOUR_2_4_GHZ_WIFI_NAME"
+
+    config EXAMPLE_WIFI_PASSWORD
+        string "Wi-Fi password"
+        default "YOUR_WIFI_PASSWORD"
+
+    config EXAMPLE_ALLOY_API_KEY
+        string "Alloy data API key"
+        default "YOUR_ALLOY_DATA_API_KEY"
+        help
+            A long-lived, org-wide data API key. Keep it out of version control: put it in a
+            gitignored sdkconfig file, never in sdkconfig.defaults.
+
+    config EXAMPLE_ALLOY_MESH_PATH
+        string "Mesh path"
+        default "first-missions/esp32"
+        help
+            Letters, numbers, _, - and / only, 1-128 characters, no leading or trailing slash.
+
+    config EXAMPLE_MISSION
+        string "Mission label"
+        default "first ESP32 mission"
+
+    config EXAMPLE_SNTP_SERVER
+        string "SNTP server"
+        default "pool.ntp.org"
+        help
+            Set an unreachable address (for example 192.0.2.1) to exercise the HTTP Date clock
+            fallback.
+
+    config EXAMPLE_INGEST_URL
+        string "Ingest URL (empty: component default)"
+        default ""
+
+endmenu

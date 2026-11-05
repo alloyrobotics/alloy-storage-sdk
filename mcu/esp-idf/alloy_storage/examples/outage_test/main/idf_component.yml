@@ -1,0 +1,4 @@
+dependencies:
+  alloyrobotics/alloy_storage:
+    version: "*"
+    override_path: "../../../"

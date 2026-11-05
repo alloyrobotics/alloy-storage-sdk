@@ -1,0 +1,9 @@
+build/
+build-*/
+build-*.log
+managed_components/
+dependencies.lock
+sdkconfig
+sdkconfig.old
+sdkconfig.secrets
+test/host/alloy-portable-tests
