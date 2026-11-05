@@ -1,0 +1,65 @@
+menu "Alloy Storage"
+
+    config ALLOY_INGEST_URL
+        string "Ingest service URL"
+        default "https://ingest.alloylogger.com"
+        help
+            Base URL of the Alloy Storage ingest service. The device speaks /v1/chunk, /v1/meta,
+            /v1/end and /v1/health under it. alloy_storage_config_t.ingest_url overrides it.
+
+    config ALLOY_POOL_SIZE
+        int "RAM buffers in the pool"
+        range 2 32
+        default 4
+        help
+            Number of upload buffers. Keep it above the number of channels logged at once, or
+            flushes wait for a free buffer. Each buffer is ALLOY_BUFFER_BYTES of heap.
+
+    config ALLOY_BUFFER_BYTES
+        int "Bytes per buffer"
+        range 512 65536
+        default 12288
+        help
+            One sealed buffer is one CSV chunk upload. 4 x 12 KB leaves room for a verified TLS
+            handshake on every ESP32 chip; raise it only with heap to spare (or PSRAM).
+
+    config ALLOY_FLUSH_INTERVAL_MS
+        int "Flush interval (ms)"
+        range 100 600000
+        default 4000
+        help
+            A channel's part-full chunk is sealed for upload this long after it opened, as long
+            as a replacement buffer is free and no sealed chunk is still waiting. Full chunks
+            seal at 90% regardless.
+
+    config ALLOY_SNTP_SERVER
+        string "SNTP server"
+        default "pool.ntp.org"
+        help
+            Started by alloy_storage_begin() when the clock is not set yet and SNTP is not
+            already running. If it has not answered after 5 s, the clock is taken from the
+            ingest service's HTTP Date header instead. Empty leaves SNTP to the app.
+
+    config ALLOY_HTTP_TIMEOUT_MS
+        int "HTTP timeout (ms)"
+        range 1000 60000
+        default 10000
+
+    config ALLOY_TASK_STACK_SIZE
+        int "Upload task stack size"
+        range 6144 32768
+        default 8192
+        help
+            The upload task runs the TLS handshake.
+
+    config ALLOY_TASK_PRIORITY
+        int "Upload task priority"
+        range 1 22
+        default 4
+
+    config ALLOY_TASK_CORE_ID
+        int "Upload task core (-1: no affinity)"
+        range -1 1
+        default -1
+
+endmenu
