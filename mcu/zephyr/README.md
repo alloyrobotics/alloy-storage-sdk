@@ -75,7 +75,7 @@ PSA algorithms for the built-in CA bundle). The samples' `prj.conf` is a working
 #include <alloy_storage/alloy_storage.h>
 
 static const struct alloy_storage_config cfg = {
-	.api_key = ALLOY_API_KEY,          /* keep it out of git */
+	.api_key = ALLOY_DEVICE_KEY,       /* this robot's device key; keep it out of git */
 	.mesh_path = "robots/rover",
 	.mission = "driveway test",
 };
@@ -118,7 +118,7 @@ ISRs.
 | `alloy_storage_wifi_connect(ssid, psk, timeout)` | Optional helper: connects the first Wi-Fi interface, retries failed associations until the timeout, waits for an IPv4 address. |
 | `alloy_storage_net_ready()` | True while conn_mgr reports L4 connectivity. |
 
-`struct alloy_storage_config`: `api_key` and `mesh_path` are required. `mesh_path` must match
+`struct alloy_storage_config`: `api_key` (this robot's device key, see [Device key](#device-key)) and `mesh_path` are required. `mesh_path` must match
 `^[A-Za-z0-9_/-]{1,128}$` with no leading or trailing slash. `device_id` (default: the board name
 plus three bytes of the hardware id), `firmware` and `mission` end up in the MCAP metadata
 (`mcap.alloy.device`, `mcap.alloy.firmware`, `mcap.alloy.mission`). `finalize_after_s` sets how long
@@ -147,6 +147,21 @@ the service waits after the last data before finalizing on its own (default abou
 
 Memory is static: `BUFFER_COUNT x BUFFER_SIZE` (48 KB by default) plus the uploader stack. Add the
 mbedTLS heap (about 56 KB for a verified handshake with 16 KB records).
+
+## Device key
+
+Give each robot its own **device key**. With a coding agent connected to the
+[Alloy MCP](https://docs.usealloy.ai/docs/integrations/coding-agents), ask it to "create a device
+key for this robot": it calls `create_dev_device_key` and saves the key from a download link that
+works for five minutes. The robot then shows under **Mesh Storage → Devices**.
+
+**Never flash the org API key** from **Mesh Storage → API keys**. It is shared by your whole org
+and can read and query all of its data, so one dumped board exposes everything, and revoking it cuts
+off every robot. Reject a lost robot's device in **Mesh Storage → Devices** (or ask your agent to)
+and its key stops working within about 30 seconds.
+
+Today a device key can still read your org's data, not only upload to its own path. MCU flash can be
+dumped, so keep the key in a git-ignored conf file and reject the device if a board is lost.
 
 ## How delivery works
 
@@ -182,7 +197,7 @@ Keep credentials in a git-ignored conf file:
 # secrets.conf (chmod 600, never committed)
 CONFIG_APP_WIFI_SSID="my-2.4GHz-network"
 CONFIG_APP_WIFI_PSK="..."
-CONFIG_APP_ALLOY_API_KEY="..."
+CONFIG_APP_ALLOY_API_KEY="..."   # this robot's device key
 ```
 
 ESP32-C3 build and flash (simple boot, so the image goes at offset 0x0):

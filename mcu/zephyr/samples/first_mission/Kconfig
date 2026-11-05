@@ -14,10 +14,10 @@ config APP_WIFI_PSK
 	default "YOUR_WIFI_PASSWORD"
 
 config APP_ALLOY_API_KEY
-	string "Alloy data API key"
-	default "YOUR_ALLOY_DATA_API_KEY"
+	string "Alloy device key"
+	default "YOUR_ALLOY_DEVICE_KEY"
 	help
-	  A long-lived, org-wide key. Keep it in a git-ignored conf file passed with
+	  This robot's own device key, never the org API key. Keep it in a git-ignored conf file passed with
 	  -DEXTRA_CONF_FILE=..., never in prj.conf.
 
 config APP_ALLOY_MESH_PATH

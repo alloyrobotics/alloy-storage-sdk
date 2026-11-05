@@ -14,8 +14,8 @@ config APP_WIFI_PSK
 	default "YOUR_WIFI_PASSWORD"
 
 config APP_ALLOY_API_KEY
-	string "Alloy data API key"
-	default "YOUR_ALLOY_DATA_API_KEY"
+	string "Alloy device key"
+	default "YOUR_ALLOY_DEVICE_KEY"
 
 config APP_ALLOY_MESH_PATH
 	string "Mesh path"

@@ -30,15 +30,22 @@ Alloy Edge installation is involved. Arduino UNO R4 WiFi users should start with
    and choose **Sketch → Include Library → Add .ZIP Library**.
 4. Open **File → Examples → AlloyStorage → FirstMission** and select your ESP32 board and port.
 
-### 2. Create a data API key
+### 2. Get a device key for this robot
 
 [Create an Alloy org free](https://www.usealloy.ai/setup-org?utm_source=github&utm_medium=referral&utm_campaign=alloylogger&utm_content=readme),
-then open **Dashboard → Mesh Storage → API key**. Copy the key when it is shown.
+then give this robot its own **device key**:
 
-> **Credential limitation today:** Alloy currently gives the ESP32 a long-lived, org-wide data API
-> key. It can read, write, and SQL-query the org's whole mesh; it is not write-only or restricted to
-> one mesh path. Use a test org for your first mission, never commit the key, and rotate it if the
-> sketch is shared. Path-scoped ingest keys remain a roadmap item, not part of this setup.
+- **With a coding agent** connected to the [Alloy MCP](https://docs.usealloy.ai/docs/integrations/coding-agents):
+  ask it to "create a device key for this robot". It calls `create_dev_device_key` and saves the key
+  from a download link that works for five minutes. The robot then shows under
+  **Mesh Storage → Devices**.
+
+> **Never flash the org API key** from **Mesh Storage → API keys** onto a robot. That key is shared
+> by your whole org and can read and query all of its data, so one dumped board exposes everything,
+> and revoking it cuts off every robot at once. A device key belongs to one robot: reject that
+> device in **Mesh Storage → Devices** (or ask your agent to) and its key stops working within about
+> 30 seconds, without touching anything else. Today a device key can still read your org's data,
+> not only upload, so keep it out of git and reject the device if a board is lost.
 
 ### 3. Change the four settings and flash
 
@@ -47,7 +54,7 @@ They are grouped at the top of `FirstMission.ino`:
 ```cpp
 const char* WIFI_SSID       = "YOUR_2_4_GHZ_WIFI_NAME";
 const char* WIFI_PASSWORD   = "YOUR_WIFI_PASSWORD";
-const char* ALLOY_API_KEY   = "YOUR_ALLOY_DATA_API_KEY";
+const char* ALLOY_API_KEY   = "YOUR_ALLOY_DEVICE_KEY";
 const char* ALLOY_MESH_PATH = "first-missions/esp32";
 ```
 
@@ -72,7 +79,7 @@ If Serial prints `CHECK NEEDED`, use the diagnostics rather than guessing:
 |---|---|---|
 | Wi-Fi timeout before `[2/4]` | The ESP32 never joined the network. | Exact SSID/password and a 2.4 GHz network. |
 | `state=syncing-clock` at the end | The uploader could get UTC time from neither NTP nor the Alloy server. | Both need internet access; check the network reaches the internet, or retry on a phone hotspot. |
-| `last_status=401` or `403` | Alloy rejected the data API key. | Copy a fresh key and reflash; never paste it into Serial or an issue. |
+| `last_status=401` or `403` | Alloy rejected the device key (mistyped, or the device was rejected). | Create a new device key and reflash; never paste it into Serial or an issue. |
 | Negative `last_status` | Wi-Fi, DNS, TLS, or the HTTPS connection failed. | Restore the network while the board stays powered; the retained buffer keeps retrying. |
 | `last_status=429` or `5xx` | Rate limit or temporary service failure. | Leave the board powered; delivery retries with bounded backoff. |
 | `dropped>0` or `dropped_rows>0` | RAM backpressure forced data loss before delivery. | Wi-Fi signal; retry the low-rate example unchanged. |
@@ -156,10 +163,10 @@ arduino-cli compile --fqbn esp32:esp32:esp32 --library /path/to/alloy-storage-sd
 arduino-cli compile --fqbn arduino:renesas_uno:unor4wifi --library /path/to/alloy-storage-sdk/mcu/arduino your_uno_sketch
 ```
 
-You need an Alloy account + a data-API key
+You need an Alloy account and a device key for each robot
 ([create an org free](https://www.usealloy.ai/setup-org?utm_source=github&utm_medium=referral&utm_campaign=alloylogger&utm_content=readme),
-then Dashboard → Mesh Storage → API key). Keep the key in a gitignored `secrets.h`, not in the
-sketch — see [Security](#security) for what it can do.
+then [get a device key](#2-get-a-device-key-for-this-robot)). Keep it in a gitignored `secrets.h`,
+not in the sketch; see [Security](#security) for what it can do.
 
 ### PlatformIO
 
@@ -421,18 +428,19 @@ MCAP, replay, or mission view).
 
 ## Security
 
-- **Know what the key can do.** The key you flash is a long-lived Alloy **data-API key**: it can
-  read, write, and SQL-query your whole org's mesh, not just this device's path. Treat a leaked
-  key as a leak of your org's data plane, not of one robot's telemetry.
-- **The device is not a vault.** MCU flash is dumpable — anyone with the board (or a sketch you
-  committed) has the key. Keep it in a gitignored `secrets.h`, give each device its own key, and
-  rotate on any suspicion.
+- **One device key per robot, never the org API key.** Flash a device key, which you can revoke
+  for that one robot by rejecting it in **Mesh Storage → Devices** (it stops working within about
+  30 seconds). The org API key from **Mesh Storage → API keys** must never go on a device.
+- **Know what the key can do.** Today a device key can read and SQL-query your org's data, not only
+  upload to its own path. Treat a leaked key as a leak of your org's data, and reject the device.
+- **The device is not a vault.** MCU flash is dumpable: anyone with the board (or a sketch you
+  committed) has the key. Keep it in a gitignored `secrets.h`.
 - **What the cloud holds.** In cloud mode the key rides along with each request; the service keeps
   it in the session state until successful finalization or bounded retry exhaustion, then purges
   it. The temporary upload credentials it derives expire after 900 s — but that TTL covers the
   *derived* credentials, not your key. No raw storage (R2) credentials ever reach the device.
-- Fine for a hobby rig today. Before putting this on a real fleet you want the write-only,
-  path-scoped ingest keys on the [roadmap](#roadmap).
+- Fine for a hobby rig today. Before putting this on a real fleet you want device keys limited to
+  uploads under their own path, which Alloy does not enforce yet.
 
 ## Roadmap
 

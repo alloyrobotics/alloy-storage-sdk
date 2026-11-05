@@ -1,6 +1,6 @@
 // first_mission: the shortest path from a fresh ESP32 to a confirmed Alloy mission.
 //
-// Set Wi-Fi, the API key and the mesh path in menuconfig ("First mission"), flash, and open the
+// Set Wi-Fi, the device key and the mesh path in menuconfig ("First mission"), flash, and open the
 // serial monitor. The app records generated telemetry for 20 seconds, prints upload health as it
 // runs and finalizes the mission explicitly. No sensors are required.
 
@@ -69,7 +69,7 @@ static void recovery_guidance(esp_err_t end)
     if (!s.ready) printf("- The clock never got set: neither SNTP nor the ingest service answered.\n");
     int st = s.last_status;
     if (st == 400 || st == 413) printf("- A setting or payload was rejected. Re-check the mesh path.\n");
-    else if (st == 401 || st == 403) printf("- The Alloy data API key was rejected. Copy a fresh key.\n");
+    else if (st == 401 || st == 403) printf("- Alloy rejected the device key. Create a new device key.\n");
     else if (st == 409) printf("- This run had already finalized. Reset to start a fresh mission.\n");
     else if (st == 429 || st >= 500) printf("- Alloy Storage ingest is temporarily unavailable.\n");
     else if (st < 0 && alloy_storage_last_error(alloy)[0])
@@ -82,7 +82,7 @@ void app_main(void)
     printf("\n=== Alloy Storage first mission (ESP-IDF) ===\n");
     if (placeholder(CONFIG_EXAMPLE_WIFI_SSID, "YOUR_2_4_GHZ_WIFI_NAME")) stop("Wi-Fi SSID is still the placeholder.");
     if (placeholder(CONFIG_EXAMPLE_WIFI_PASSWORD, "YOUR_WIFI_PASSWORD")) stop("Wi-Fi password is still the placeholder.");
-    if (placeholder(CONFIG_EXAMPLE_ALLOY_API_KEY, "YOUR_ALLOY_DATA_API_KEY")) stop("Alloy API key is still the placeholder.");
+    if (placeholder(CONFIG_EXAMPLE_ALLOY_API_KEY, "YOUR_ALLOY_DEVICE_KEY")) stop("Alloy device key is still the placeholder.");
     if (!alloy_valid_mesh_path(CONFIG_EXAMPLE_ALLOY_MESH_PATH))
         stop("Mesh path must be 1-128 characters of letters, numbers, _, - and / (no edge slash).");
 

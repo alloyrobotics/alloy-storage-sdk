@@ -4,7 +4,7 @@
  *
  * First mission: the shortest path from a Zephyr Wi-Fi board to a confirmed Alloy mission.
  *
- * Set the Wi-Fi name, password, API key and mesh path (see README), flash, then open the console.
+ * Set the Wi-Fi name, password, device key and mesh path (see README), flash, then open the console.
  * The sample records generated telemetry for CONFIG_APP_MISSION_SECONDS, prints upload health as
  * it runs and explicitly finalizes the mission. No sensors are required.
  */
@@ -93,7 +93,7 @@ static void print_recovery_guidance(int end_rc)
 	if (s.last_status == 400 || s.last_status == 413) {
 		printk("- A setting or payload was rejected. Re-check the mesh path.\n");
 	} else if (s.last_status == 401 || s.last_status == 403) {
-		printk("- The Alloy data API key was rejected. Copy a fresh key and rebuild.\n");
+		printk("- Alloy rejected the device key. Create a new device key and rebuild.\n");
 	} else if (s.last_status == 409) {
 		printk("- This run had already finalized. Reset the board to start a fresh mission.\n");
 	} else if (s.last_status == 429 || s.last_status >= 500) {
@@ -131,7 +131,7 @@ int main(void)
 	if (strcmp(CONFIG_APP_WIFI_PSK, "YOUR_WIFI_PASSWORD") == 0) {
 		stop_with_message("CONFIG_APP_WIFI_PSK is still the placeholder.");
 	}
-	if (unchanged(CONFIG_APP_ALLOY_API_KEY, "YOUR_ALLOY_DATA_API_KEY")) {
+	if (unchanged(CONFIG_APP_ALLOY_API_KEY, "YOUR_ALLOY_DEVICE_KEY")) {
 		stop_with_message("CONFIG_APP_ALLOY_API_KEY is still the placeholder.");
 	}
 

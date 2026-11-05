@@ -78,7 +78,7 @@ field.
 
 The [`first_mission`](examples/first_mission) example is the full version of this, printing each
 stage and a PASS or FAIL. [`outage_test`](examples/outage_test) stops Wi-Fi for 25 s mid-run and
-checks that nothing was lost. Both read Wi-Fi, the API key and the mesh path from menuconfig:
+checks that nothing was lost. Both read Wi-Fi, the device key and the mesh path from menuconfig:
 
 ```sh
 cd examples/first_mission
@@ -109,7 +109,7 @@ a task with room for it.
 
 | Field | Default | |
 |---|---|---|
-| `api_key` | required | Alloy data API key. |
+| `api_key` | required | This robot's Alloy device key (never the org API key; see [Device key](#device-key)). |
 | `mesh_path` | required | 1 to 128 of `A-Z a-z 0-9 _ - /`, no leading or trailing `/`. Checked by `begin()`. |
 | `device_id` | project name | Sanitized to `A-Z a-z 0-9 _ -`, at most 23 characters. |
 | `firmware` | app version | Stored in the MCAP metadata. |
@@ -179,11 +179,20 @@ Server certificates are verified against ESP-IDF's certificate bundle
 The `Date` clock fallback relies on ESP-IDF's default of not checking certificate dates
 (`CONFIG_MBEDTLS_HAVE_TIME_DATE` off). If you turn that on, set the clock before `begin()`.
 
-## API key
+## Device key
 
-The data API key is long-lived and org-wide, not scoped to one mesh path. Keep it out of version
-control (a gitignored `sdkconfig` file, or NVS), and rotate it if a firmware image with it is
-shared.
+Give each robot its own **device key**. With a coding agent connected to the
+[Alloy MCP](https://docs.usealloy.ai/docs/integrations/coding-agents), ask it to "create a device
+key for this robot": it calls `create_dev_device_key` and saves the key from a download link that
+works for five minutes. The robot then shows under **Mesh Storage → Devices**.
+
+**Never flash the org API key** from **Mesh Storage → API keys**. It is shared by your whole org
+and can read and query all of its data, so one dumped board exposes everything, and revoking it cuts
+off every robot. Reject a lost robot's device in **Mesh Storage → Devices** (or ask your agent to)
+and its key stops working within about 30 seconds.
+
+Today a device key can still read your org's data, not only upload to its own path. Keep it out of
+version control (a gitignored `sdkconfig` file, or NVS).
 
 ## Not yet
 
