@@ -1,0 +1,33 @@
+name: esp-idf-publish
+
+# Uploads mcu/esp-idf/alloy_storage to the ESP Component Registry as alloyrobotics/alloy_storage.
+# Runs on an esp-idf-v* tag (or by hand). The version comes from idf_component.yml, and the
+# registry skips a version it already has, so re-running is safe. Versions can never be replaced:
+# bump idf_component.yml before tagging.
+#
+# Auth is GitHub OIDC: the registry trusts this repository as an uploader for the component
+# (components.espressif.com → Permissions → alloy_storage → Trusted Uploaders). No token secret.
+
+on:
+  push:
+    tags: ["esp-idf-v*"]
+  workflow_dispatch:
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Tag matches the manifest version
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          manifest="$(sed -n 's/^version: *"\{0,1\}\([^"]*\)"\{0,1\}$/\1/p' mcu/esp-idf/alloy_storage/idf_component.yml)"
+          tag="${GITHUB_REF_NAME#esp-idf-v}"
+          [ "$manifest" = "$tag" ] || { echo "tag $tag != idf_component.yml version $manifest"; exit 1; }
+      - uses: espressif/upload-components-ci-action@v2
+        with:
+          components: "alloy_storage:mcu/esp-idf/alloy_storage"
+          namespace: alloyrobotics
