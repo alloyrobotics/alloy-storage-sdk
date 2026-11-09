@@ -21,13 +21,13 @@ Targets: ESP32, ESP32-S2, ESP32-S3, ESP32-C3, ESP32-C6. ESP-IDF 5.3 or later.
 
 ## Install
 
-Once it is published to the [ESP Component Registry](https://components.espressif.com):
+From the [ESP Component Registry](https://components.espressif.com/components/alloyrobotics/alloy_storage):
 
 ```sh
 idf.py add-dependency "alloyrobotics/alloy_storage^0.1.0"
 ```
 
-Until then, depend on it from git in your `main/idf_component.yml`:
+To track unreleased changes, depend on it from git in your `main/idf_component.yml` instead:
 
 ```yaml
 dependencies:
