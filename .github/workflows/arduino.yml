@@ -21,9 +21,7 @@ jobs:
       - uses: arduino/arduino-lint-action@v2
         with:
           path: mcu/arduino
-          # Switch to `update` once Library Manager has processed the AlloyLogger -> AlloyStorage
-          # rename; until then rule LP018 (name not in the index) fails by design.
-          library-manager: false
+          library-manager: update
           compliance: strict
 
   compile:
